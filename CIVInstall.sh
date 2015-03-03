@@ -157,7 +157,7 @@ echo -n "输入您想配置的xauth:"
 read readmyxauth
 echo ": RSA server.pem" > /usr/local/etc/ipsec.secrets
 echo ": PSK \"$mypsk\"" >> /usr/local/etc/ipsec.secrets
-echo ": XAUTH \$myxauth\"" >> /usr/local/etc/ipsec.secrets
+echo ": XAUTH \"$myxauth\"" >> /usr/local/etc/ipsec.secrets
 
 for ((i=1;i<100;i++))
 do
