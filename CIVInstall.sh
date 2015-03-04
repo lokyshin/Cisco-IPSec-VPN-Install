@@ -74,7 +74,20 @@ make; make install
 
 
 #开始配置证书
-ipsec pki --gen --outform pem >ca.pem && ipsec pki --self --in ca.pem --dn "C=CH, O=lokyshin, CN=lokyshinCA" --ca --outform pem >ca.cert.pem && ipsec pki --gen --outform pem > server.pem && ipsec pki --pub --in server.pem | ipsec pki --issue --cacert ca.cert.pem --cakey ca.pem --dn "C=CH, O=lokyshin, CN=lokyshin.com" —san="lokyshin.com" --flag serverAuth --flag ikeIntermediate --outform pem > server.cert.pem && ipsec pki --gen --outform pem > client.pem && ipsec pki --pub --in client.pem | ipsec pki --issue --cacert ca.cert.pem --cakey ca.pem --dn "C=CH, O=lokyshin, CN=lokyshin.com client" --outform pem >client.cert.pem && openssl pkcs12 -export -inkey client.pem -in client.cert.pem -name "lkspk12forclient" -certfile ca.cert.pem -caname "lokyshinCA" -out client.cert.p12
+echo "开始签名CA证书"
+echo -n "请输入您需要配置的C"
+read C
+echo -n "请输入您需要配置的O"
+read O
+echo -n "请输入您需要配置的CN"
+read CN
+echo -n "请输入您的服务器ip地址或域名"
+read CNsan
+echo -n "请输入您使用CA签名客户端证书的CN"
+read CACN
+echo -n "请输入您生成pkcs12证书名"
+read pkcsname
+ipsec pki --gen --outform pem >ca.pem && ipsec pki --self --in ca.pem --dn "C=$C, O=$O, CN=$CN" --ca --outform pem >ca.cert.pem && ipsec pki --gen --outform pem > server.pem && ipsec pki --pub --in server.pem | ipsec pki --issue --cacert ca.cert.pem --cakey ca.pem --dn "C=$C, O=$O, CN=$CNsan" —san="$CNsan" --flag serverAuth --flag ikeIntermediate --outform pem > server.cert.pem && ipsec pki --gen --outform pem > client.pem && ipsec pki --pub --in client.pem | ipsec pki --issue --cacert ca.cert.pem --cakey ca.pem --dn "C=$C, O=$O, CN=$CACN" --outform pem >client.cert.pem && openssl pkcs12 -export -inkey client.pem -in client.cert.pem -name "$pkcsname" -certfile ca.cert.pem -caname "$CN" -out client.cert.p12
 
 cp -r ca.cert.pem /usr/local/etc/ipsec.d/cacerts/ && cp -r server.cert.pem /usr/local/etc/ipsec.d/certs/ && cp -r server.pem /usr/local/etc/ipsec.d/private/ && cp -r client.cert.pem /usr/local/etc/ipsec.d/certs/ && cp -r client.pem  /usr/local/etc/ipsec.d/private/
 
@@ -157,20 +170,20 @@ echo -n "输入您想配置的xauth:"
 read readmyxauth
 echo ": RSA server.pem" > /usr/local/etc/ipsec.secrets
 echo ": PSK \"$mypsk\"" >> /usr/local/etc/ipsec.secrets
-echo ": XAUTH \"$myxauth\"" >> /usr/local/etc/ipsec.secrets
+echo ": XAUTH \$myxauth\"" >> /usr/local/etc/ipsec.secrets
 
-for ((i=1;i<100;i++))
+for ((i=1;i<1000;i++))
 do
 echo -n "输入您想配置的用户名:"
-read name
-echo -n "输入您想配置的用户的密码:"
-read psw
-echo "$name %any : EAP \"$psw\"" >> /usr/local/etc/ipsec.secrets
-echo "如果需要添加用户，请在最后一行输入同上格式的"
-echo -n "是否还是需要继续添加用户？ (y/n)"
+read name[$i]
+echo -n "输入该用户的授权秘钥:"
+read psw[$i]
+echo "${name[$i]} %any : EAP \"${psw[$i]}\"" >> /usr/local/etc/ipsec.secrets
+echo -n "还需要追加用户？如不需要请输入n并回车。"
 read addconfirm
 if [ "$addconfirm" == 'n' ]; then
-i=200
+n=$i
+i=2000
 fi
 done
 
@@ -246,6 +259,18 @@ echo "echo \"Cisco Ipsec VPN has been launched on your server now.\"" >> startvp
 
 chmod -R 775 startvpn.sh
 clear
+
+echo "您的配置如下："
+echo "您的PSK $mypsk"
+echo "您的XAUTH $myxauth"
+echo "================================="
+echo " ｜ 用户名 ｜ 授权秘钥 ｜ "
+for ((i=1;i<n+1;i++))
+do
+echo " ｜ ${name[$i]} ｜ ${psw[$i]} ｜ "
+done
+echo "================================="
+
 echo "每次重启服务器后，不要忘了手动运行./startvpn.sh"
 echo "您的用户配置文件位置在/usr/local/etc/ipsec.secrets"
 echo "祝您使用愉快，谢谢！"
