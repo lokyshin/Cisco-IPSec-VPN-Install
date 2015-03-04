@@ -74,6 +74,7 @@ fi
 make; make install
 clear
 ipsec version
+echo ""
 echo "如您看到了Ipsec的版本信息，代表Ipsec工作正常。"
 
 #开始配置证书
@@ -180,7 +181,7 @@ echo -n "输入您想配置的XAUTH:"
 read myxauth
 echo ": RSA server.pem" > /usr/local/etc/ipsec.secrets
 echo ": PSK \"$mypsk\"" >> /usr/local/etc/ipsec.secrets
-echo ": XAUTH \$myxauth\"" >> /usr/local/etc/ipsec.secrets
+echo ": XAUTH \"$myxauth\"" >> /usr/local/etc/ipsec.secrets
 
 for ((i=1;i<1000;i++))
 do
