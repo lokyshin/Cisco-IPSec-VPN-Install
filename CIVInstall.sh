@@ -48,6 +48,7 @@ fi
 }
 
 #开始编译安装Strongswan
+echo "#开始编译安装Strongswan"
 ConfirmSys;
 ConfirmCore;
 ConfirmAgain;
@@ -71,27 +72,33 @@ if [ "$selectedCore" == 'OpenVZ' ]; then
 fi
 
 make; make install
-
+clear
+ipsec version
+echo "如您看到了Ipsec的版本信息，代表Ipsec工作正常。"
 
 #开始配置证书
+echo "#开始配置证书"
 echo "开始签名CA证书"
-echo -n "请输入您需要配置的C"
+echo -n "请输入您需要配置的C值（任意）:"
 read C
-echo -n "请输入您需要配置的O"
+echo -n "请输入您需要配置的O值（任意）:"
 read O
-echo -n "请输入您需要配置的CN"
+echo -n "请输入您需要配置的CN值（任意）:"
 read CN
-echo -n "请输入您的服务器ip地址或域名"
+echo -n "请输入现在服务器ip地址或域名（请务必准确）:"
 read CNsan
-echo -n "请输入您使用CA签名客户端证书的CN"
+echo -n "请输入您使用CA签名客户端证书的CN值（任意）:"
 read CACN
-echo -n "请输入您生成pkcs12证书名"
+echo -n "请输入您生成pkcs12证书名（任意）:"
 read pkcsname
+echo "[提示] 接下来设置两次证书密码，请注意字符不显示。"
 ipsec pki --gen --outform pem >ca.pem && ipsec pki --self --in ca.pem --dn "C=$C, O=$O, CN=$CN" --ca --outform pem >ca.cert.pem && ipsec pki --gen --outform pem > server.pem && ipsec pki --pub --in server.pem | ipsec pki --issue --cacert ca.cert.pem --cakey ca.pem --dn "C=$C, O=$O, CN=$CNsan" —san="$CNsan" --flag serverAuth --flag ikeIntermediate --outform pem > server.cert.pem && ipsec pki --gen --outform pem > client.pem && ipsec pki --pub --in client.pem | ipsec pki --issue --cacert ca.cert.pem --cakey ca.pem --dn "C=$C, O=$O, CN=$CACN" --outform pem >client.cert.pem && openssl pkcs12 -export -inkey client.pem -in client.cert.pem -name "$pkcsname" -certfile ca.cert.pem -caname "$CN" -out client.cert.p12
 
 cp -r ca.cert.pem /usr/local/etc/ipsec.d/cacerts/ && cp -r server.cert.pem /usr/local/etc/ipsec.d/certs/ && cp -r server.pem /usr/local/etc/ipsec.d/private/ && cp -r client.cert.pem /usr/local/etc/ipsec.d/certs/ && cp -r client.pem  /usr/local/etc/ipsec.d/private/
+echo "完成。"
 
 #开始配置Strongswan
+echo "配置Strongswan..."
 echo "config setup" > /usr/local/etc/ipsec.conf
 echo "    uniqueids=never" >> /usr/local/etc/ipsec.conf
 echo "    " >> /usr/local/etc/ipsec.conf
@@ -147,8 +154,9 @@ echo "    rightsourceip=10.31.2.0/24" >> /usr/local/etc/ipsec.conf
 echo "    rightsendcert=never" >> /usr/local/etc/ipsec.conf
 echo "    eap_identity=%any" >> /usr/local/etc/ipsec.conf
 echo "    auto=add" >> /usr/local/etc/ipsec.conf
+echo "完成。"
 
-
+echo "配置Strongswan的配置文件..."
 echo "charon {" > /usr/local/etc/strongswan.conf
 echo "    load_modular = yes" >> /usr/local/etc/strongswan.conf
 echo "    duplicheck.enable = no" >> /usr/local/etc/strongswan.conf
@@ -162,12 +170,14 @@ echo "    nbns1 = 8.8.8.8" >> /usr/local/etc/strongswan.conf
 echo "    nbns2 = 8.8.4.4" >> /usr/local/etc/strongswan.conf
 echo "}" >> /usr/local/etc/strongswan.conf
 echo "include strongswan.d/*.conf" >> /usr/local/etc/strongswan.conf
+echo "完成。"
 
 #开始配置PSK和XAUTH，以及用户名和密码
+echo "#开始配置PSK和XAUTH，以及用户名和密码"
 echo -n "输入您想配置的PSK:"
 read mypsk
-echo -n "输入您想配置的xauth:"
-read readmyxauth
+echo -n "输入您想配置的XAUTH:"
+read myxauth
 echo ": RSA server.pem" > /usr/local/etc/ipsec.secrets
 echo ": PSK \"$mypsk\"" >> /usr/local/etc/ipsec.secrets
 echo ": XAUTH \$myxauth\"" >> /usr/local/etc/ipsec.secrets
@@ -186,8 +196,10 @@ n=$i
 i=2000
 fi
 done
+echo "完成。"
 
 #开始配置防火墙
+echo "#开始配置防火墙"
 sed -i '/Controls IP packet forwarding/d' /etc/sysctl.conf
 sed -i '/net.ipv4.ip_forward/d' /etc/sysctl.conf
 echo "# Controls IP packet forwarding" >> /etc/sysctl.conf
@@ -226,9 +238,10 @@ chmod +x /etc/network/if-up.d/iptables
 else
 service iptables save
 fi
+echo "完成。"
 
-
-#登陆目录生成开机手动启动文件
+#在登陆目录生成开机手动启动文件
+echo "#在登陆目录生成开机手动启动文件"
 cd ~
 echo "#!/bin/bash" > startvpn.sh
 echo "echo \"Starting Cisco Ipsec VPN ...\"" >> startvpn.sh
@@ -258,6 +271,7 @@ fi
 echo "echo \"Cisco Ipsec VPN has been launched on your server now.\"" >> startvpn.sh
 
 chmod -R 775 startvpn.sh
+bash startvpn.sh
 clear
 
 echo "您的配置如下："
@@ -275,7 +289,7 @@ echo "每次重启服务器后，不要忘了手动运行./startvpn.sh"
 echo "您的用户配置文件位置在/usr/local/etc/ipsec.secrets"
 echo "祝您使用愉快，谢谢！"
 echo "";
-echo "现在将为您的VPS安装Casio IPSec VPN"
-echo "[提示] 请注意：仅支持Ubuntu及CentOS"
-echo "            Written by Lokyshin"
+echo "Casio IPSec VPN"
+echo "Ver 1.1"
+echo "Written by Lokyshin"
 echo ""
