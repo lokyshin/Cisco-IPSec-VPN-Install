@@ -2,7 +2,7 @@
 clear
 echo "";
 echo "现在将为您的VPS安装Casio IPSec VPN"
-echo "[提示] 请注意：仅支持Ubuntu及CentOS"
+echo "[提示] 仅测试了Ubuntu及CentOS系统"
 echo "            Written by Lokyshin"
 echo ""
 
