@@ -190,7 +190,7 @@ read name[$i]
 echo -n "输入该用户的授权秘钥:"
 read psw[$i]
 echo "${name[$i]} %any : EAP \"${psw[$i]}\"" >> /usr/local/etc/ipsec.secrets
-echo -n "还需要追加用户？如不需要请输入n并回车。"
+echo -n "需要追加用户请直接回车，如不需要请输入n并回车。"
 read addconfirm
 if [ "$addconfirm" == 'n' ]; then
 n=$i
