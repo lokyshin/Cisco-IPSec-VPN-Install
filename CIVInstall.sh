@@ -286,7 +286,7 @@ echo " ｜ ${name[$i]} ｜ ${psw[$i]} ｜ "
 done
 echo "================================="
 
-echo "每次重启服务器后，不要忘了手动运行./startvpn.sh"
+echo "每次重启服务器后，不要忘了手动运行bash startvpn.sh"
 echo "您的用户配置文件位置在/usr/local/etc/ipsec.secrets"
 echo "祝您使用愉快，谢谢！"
 echo "";
