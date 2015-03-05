@@ -6,4 +6,4 @@ So enjoy it if you have one VPS with XEN/KVM/OpenVZ.
 
 Tips: This code supports the following servers: Linode/DigitalOcean/Bandwagonhost/AWS and more.
 
-[B]Pls remember, you must run this codes with your root user.[/B]
+Pls remember, you must run this codes with your root user.
