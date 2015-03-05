@@ -175,9 +175,9 @@ echo "完成。"
 
 #开始配置PSK和XAUTH，以及用户名和密码
 echo "#开始配置PSK和XAUTH，以及用户名和密码"
-echo -n "输入您想配置的PSK:"
+echo -n "输入您想配置的PSK(秘钥):"
 read mypsk
-echo -n "输入您想配置的XAUTH:"
+echo -n "输入您想配置的XAUTH(授权方式):"
 read myxauth
 echo ": RSA server.pem" > /usr/local/etc/ipsec.secrets
 echo ": PSK \"$mypsk\"" >> /usr/local/etc/ipsec.secrets
@@ -187,7 +187,7 @@ for ((i=1;i<1000;i++))
 do
 echo -n "输入您想配置的用户名:"
 read name[$i]
-echo -n "输入该用户的授权秘钥:"
+echo -n "输入该用户的对应密码:"
 read psw[$i]
 echo "${name[$i]} %any : EAP \"${psw[$i]}\"" >> /usr/local/etc/ipsec.secrets
 echo -n "需要追加用户请直接回车，如不需要请输入n并回车。"
