@@ -5,3 +5,4 @@ And the only thing you should do is typing several words based on the tips.
 So enjoy it if you have one VPS with XEN/KVM/OpenVZ.
 
 Tips: This code supports the following servers: Linode/DigitalOcean/Bandwagonhost/AWS and more.
+Pls remember, you must run this codes with your root user.
