@@ -276,7 +276,7 @@ bash startvpn.sh
 clear
 
 echo "您的配置如下："
-echo "您的PSK $mypsk"
+echo "您的秘钥PSK $mypsk"
 echo "您的XAUTH $myxauth"
 echo "================================="
 echo " ｜ 用户名 ｜ 密 码 ｜ "
