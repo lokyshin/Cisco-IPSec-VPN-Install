@@ -4,6 +4,10 @@ It will be stable when you connect your iPhone/Anroid/PC/Mac to your CentOS/Ubun
 And the only thing you should do is typing several words based on the tips.
 So enjoy it if you have one VPS with XEN/KVM/OpenVZ.
 
-Tips: This code supports the following servers: Linode/DigitalOcean/Bandwagonhost/AWS and more.
+Tips: This code supports the following servers: Linode/DigitalOcean/Bandwagonhost and more.
 
 Pls remember, you must run this codes with your root user.
+
+If you want to one-key install Cisco IPSec VPN on your server, you could copy the following codes and run:
+
+wget --no-check-certificate http://lokyshin.com/codes/CIVInstall.sh && chmod +x CIVInstall.sh && bash CIVInstall.sh 2>&1 | tee civaws_install.log
