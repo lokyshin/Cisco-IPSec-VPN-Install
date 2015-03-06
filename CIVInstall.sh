@@ -279,7 +279,7 @@ echo "您的配置如下："
 echo "您的PSK $mypsk"
 echo "您的XAUTH $myxauth"
 echo "================================="
-echo " ｜ 用户名 ｜ 授权秘钥 ｜ "
+echo " ｜ 用户名 ｜ 密 码 ｜ "
 for ((i=1;i<n+1;i++))
 do
 echo " ｜ ${name[$i]} ｜ ${psw[$i]} ｜ "
