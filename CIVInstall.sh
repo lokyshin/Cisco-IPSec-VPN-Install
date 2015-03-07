@@ -211,6 +211,8 @@ iptables -A FORWARD -m state --state RELATED,ESTABLISHED -j ACCEPT
 iptables -A FORWARD -s 10.31.0.0/24  -j ACCEPT
 iptables -A FORWARD -s 10.31.1.0/24  -j ACCEPT
 iptables -A FORWARD -s 10.31.2.0/24  -j ACCEPT
+
+if [ "$selectedCore" == 'OpenVZ' ]; then
 iptables -A INPUT -i venet0 -p esp -j ACCEPT
 iptables -A INPUT -i venet0 -p udp --dport 500 -j ACCEPT
 iptables -A INPUT -i venet0 -p tcp --dport 500 -j ACCEPT
@@ -218,12 +220,17 @@ iptables -A INPUT -i venet0 -p udp --dport 4500 -j ACCEPT
 iptables -A INPUT -i venet0 -p udp --dport 1701 -j ACCEPT
 iptables -A INPUT -i venet0 -p tcp --dport 1723 -j ACCEPT
 iptables -A FORWARD -j REJECT
-
-if [ "$selectedCore" == 'OpenVZ' ]; then
 iptables -t nat -A POSTROUTING -s 10.31.0.0/24 -o venet0 -j MASQUERADE
 iptables -t nat -A POSTROUTING -s 10.31.1.0/24 -o venet0 -j MASQUERADE
 iptables -t nat -A POSTROUTING -s 10.31.2.0/24 -o venet0 -j MASQUERADE
 else
+iptables -A INPUT -i eth0 -p esp -j ACCEPT
+iptables -A INPUT -i eth0 -p udp --dport 500 -j ACCEPT
+iptables -A INPUT -i eth0 -p tcp --dport 500 -j ACCEPT
+iptables -A INPUT -i eth0 -p udp --dport 4500 -j ACCEPT
+iptables -A INPUT -i eth0 -p udp --dport 1701 -j ACCEPT
+iptables -A INPUT -i eth0 -p tcp --dport 1723 -j ACCEPT
+iptables -A FORWARD -j REJECT
 iptables -t nat -A POSTROUTING -s 10.31.0.0/24 -o eth0 -j MASQUERADE
 iptables -t nat -A POSTROUTING -s 10.31.1.0/24 -o eth0 -j MASQUERADE
 iptables -t nat -A POSTROUTING -s 10.31.2.0/24 -o eth0 -j MASQUERADE
@@ -251,6 +258,8 @@ echo "iptables -A FORWARD -m state --state RELATED,ESTABLISHED -j ACCEPT" >> sta
 echo "iptables -A FORWARD -s 10.31.0.0/24  -j ACCEPT" >> startvpn.sh
 echo "iptables -A FORWARD -s 10.31.1.0/24  -j ACCEPT" >> startvpn.sh
 echo "iptables -A FORWARD -s 10.31.2.0/24  -j ACCEPT" >> startvpn.sh
+
+if [ "$selectedCore" == 'OpenVZ' ]; then
 echo "iptables -A INPUT -i venet0 -p esp -j ACCEPT" >> startvpn.sh
 echo "iptables -A INPUT -i venet0 -p udp --dport 500 -j ACCEPT" >> startvpn.sh
 echo "iptables -A INPUT -i venet0 -p tcp --dport 500 -j ACCEPT" >> startvpn.sh
@@ -258,12 +267,17 @@ echo "iptables -A INPUT -i venet0 -p udp --dport 4500 -j ACCEPT" >> startvpn.sh
 echo "iptables -A INPUT -i venet0 -p udp --dport 1701 -j ACCEPT" >> startvpn.sh
 echo "iptables -A INPUT -i venet0 -p tcp --dport 1723 -j ACCEPT" >> startvpn.sh
 echo "iptables -A FORWARD -j REJECT" >> startvpn.sh
-
-if [ "$selectedCore" == 'OpenVZ' ]; then
 echo "iptables -t nat -A POSTROUTING -s 10.31.0.0/24 -o venet0 -j MASQUERADE" >> startvpn.sh
 echo "iptables -t nat -A POSTROUTING -s 10.31.1.0/24 -o venet0 -j MASQUERADE" >> startvpn.sh
 echo "iptables -t nat -A POSTROUTING -s 10.31.2.0/24 -o venet0 -j MASQUERADE" >> startvpn.sh
 else
+echo "iptables -A INPUT -i eth0 -p esp -j ACCEPT" >> startvpn.sh
+echo "iptables -A INPUT -i eth0 -p udp --dport 500 -j ACCEPT" >> startvpn.sh
+echo "iptables -A INPUT -i eth0 -p tcp --dport 500 -j ACCEPT" >> startvpn.sh
+echo "iptables -A INPUT -i eth0 -p udp --dport 4500 -j ACCEPT" >> startvpn.sh
+echo "iptables -A INPUT -i eth0 -p udp --dport 1701 -j ACCEPT" >> startvpn.sh
+echo "iptables -A INPUT -i eth0 -p tcp --dport 1723 -j ACCEPT" >> startvpn.sh
+echo "iptables -A FORWARD -j REJECT" >> startvpn.sh
 echo "iptables -t nat -A POSTROUTING -s 10.31.0.0/24 -o eth0 -j MASQUERADE" >> startvpn.sh
 echo "iptables -t nat -A POSTROUTING -s 10.31.1.0/24 -o eth0 -j MASQUERADE" >> startvpn.sh
 echo "iptables -t nat -A POSTROUTING -s 10.31.2.0/24 -o eth0 -j MASQUERADE" >> startvpn.sh
