@@ -5,6 +5,7 @@ echo "            恭喜您 已成功安装Casio IPSec VPN"
 echo "[提示] 经测试支持如下系统：CentOS/Ubuntu/Debian/Fedora"
 echo "          并支持x86/64位版本，以及全部常用版本"
 echo "                                   Written by Lokyshin"
+echo "                                   http://lokyshin.com"
 echo "                                               Ver 2.0"
 echo "======================================================";
 echo ""
