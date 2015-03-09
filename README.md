@@ -2,15 +2,7 @@
 This is a one-key file to install Cisco IPSec VPN on CentOS or Ubuntu Server.
 It will be stable when you connect your iPhone/Anroid/PC/Mac to your CentOS/Ubuntu Server with this tool in China.
 And the only thing you should do is typing several words based on the tips.
-So enjoy it if you have one VPS with XEN/KVM/OpenVZ.
-
-======================================================";
-            Casio IPSec VPN 一键安装脚本
-[提示] 经测试支持如下系统：CentOS/Ubuntu/Debian/Fedora
-         并支持x86/64位版本，以及全部常用版本
-                                   Written by Lokyshin
-                                               Ver 2.0
-"======================================================";
+So enjoy it if you have one VPS (CentOS/Ubuntu/Debian/Fedora) with XEN/KVM/OpenVZ.
 
 Tips: This code supports the following servers: Linode/DigitalOcean/Bandwagonhost and more.
 
