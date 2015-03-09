@@ -1,19 +1,20 @@
 #!/bin/bash
 clear
-echo "";
-echo "现在将为您的VPS安装Casio IPSec VPN"
-echo "[提示] 仅测试了Ubuntu及CentOS系统"
-echo "            Written by Lokyshin"
+echo "======================================================";
+echo "            恭喜您 已成功安装Casio IPSec VPN"
+echo "[提示] 经测试支持如下系统：CentOS/Ubuntu/Debian/Fedora"
+echo "          并支持x86/64位版本，以及全部常用版本"
+echo "                                   Written by Lokyshin"
+echo "                                               Ver 2.0"
+echo "======================================================";
 echo ""
 
 function ConfirmSys()
 {
-echo "[提示] 请确认您的系统: (1~2)"
-select selectedSys in 'Ubuntu' 'CentOS'; do break; done
+echo "[提示] 请确认您的系统: (1~4)"
+select selectedSys in 'CentOS' 'Ubuntu' 'Debian' 'Fedora'; do break; done
 
-if [ "$selectedSys" == 'Ubuntu' ]; then
-echo "您选择的系统为：${selectedSys}"
-elif [ "$selectedSys" == 'CentOS' ]; then
+if [ "$selectedSys" == 'CentOS' -o "$selectedSys" == 'Ubuntu' -o "$selectedSys" == 'Debian' -o "$selectedSys" == 'Fedora' ]; then
 echo "您选择的系统为：${selectedSys}"
 else
 echo "您输入了错误选项"
@@ -26,10 +27,8 @@ function ConfirmCore()
 echo "[提示] 请确认您的内核: (1~2)"
 select selectedCore in 'Xen/KVM' 'OpenVZ'; do break; done
 
-if [ "$selectedCore" == 'Xen/KVM' ]; then
-echo "您确认的内核为：${selectedSys}"
-elif [ "$selectedCore" == 'OpenVZ' ]; then
-echo "您确认的内核为：${selectedSys}"
+if [ "$selectedCore" == 'Xen/KVM' -o  "$selectedCore" == 'OpenVZ' ]; then
+echo "您确认的内核为：${selectedCore}"
 else
 echo "您输入了错误选项"
 exit
@@ -48,30 +47,30 @@ fi
 }
 
 #开始编译安装Strongswan
-echo "#开始编译安装Strongswan"
 ConfirmSys;
 ConfirmCore;
 ConfirmAgain;
 
-if [ "$selectedSys" == 'Ubuntu' ]; then
-apt-get update
-apt-get install libpam0g-dev libssl-dev make gcc
+echo "#开始编译安装Strongswan"
+if [ "$selectedSys" == 'Ubuntu' -o  "$selectedSys" == 'Debian' ]; then
+sudo apt-get update
+sudo apt-get install libpam0g-dev libssl-dev make gcc
 else
 yum update
 yum install pam-devel openssl-devel make gcc
 fi
 
-wget http://download.strongswan.org/strongswan.tar.gz
+sudo wget http://download.strongswan.org/strongswan.tar.gz
 tar xzf strongswan.tar.gz
 cd strongswan-*
 
-./configure  --enable-eap-identity --enable-eap-md5 --enable-eap-mschapv2 --enable-eap-tls --enable-eap-ttls --enable-eap-peap  --enable-eap-tnc --enable-eap-dynamic --enable-eap-radius --enable-xauth-eap  --enable-xauth-pam  --enable-dhcp  --enable-openssl  --enable-addrblock --enable-unity  --enable-certexpire --enable-radattr --enable-tools --enable-openssl --disable-gmp
-
 if [ "$selectedCore" == 'OpenVZ' ]; then
-./configure --enable-kernel-libipsec
+./configure  --enable-eap-identity --enable-eap-md5 --enable-eap-mschapv2 --enable-eap-tls --enable-eap-ttls --enable-eap-peap  --enable-eap-tnc --enable-eap-dynamic --enable-eap-radius --enable-xauth-eap  --enable-xauth-pam  --enable-dhcp  --enable-openssl  --enable-addrblock --enable-unity  --enable-certexpire --enable-radattr --enable-tools --enable-openssl --disable-gmp --enable-kernel-libipsec
+else
+./configure  --enable-eap-identity --enable-eap-md5 --enable-eap-mschapv2 --enable-eap-tls --enable-eap-ttls --enable-eap-peap  --enable-eap-tnc --enable-eap-dynamic --enable-eap-radius --enable-xauth-eap  --enable-xauth-pam  --enable-dhcp  --enable-openssl  --enable-addrblock --enable-unity  --enable-certexpire --enable-radattr --enable-tools --enable-openssl --disable-gmp
 fi
 
-make; make install
+sudo make; sudo make install
 clear
 ipsec version
 echo ""
@@ -79,27 +78,30 @@ echo "如您看到了Ipsec的版本信息，代表Ipsec工作正常。"
 
 #开始配置证书
 echo "#开始配置证书"
-echo "开始签名CA证书"
-echo -n "请输入您需要配置的C值（任意）:"
-read C
-echo -n "请输入您需要配置的O值（任意）:"
-read O
-echo -n "请输入您需要配置的CN值（任意）:"
-read CN
+echo "签名CA证书"
 echo -n "请输入现在服务器ip地址或域名（请务必准确）:"
 read CNsan
-echo -n "请输入您使用CA签名客户端证书的CN值（任意）:"
-read CACN
 echo -n "请输入您生成pkcs12证书名（任意）:"
 read pkcsname
 echo "[提示] 接下来设置两次证书密码，请注意字符不显示。"
-ipsec pki --gen --outform pem >ca.pem && ipsec pki --self --in ca.pem --dn "C=$C, O=$O, CN=$CN" --ca --outform pem >ca.cert.pem && ipsec pki --gen --outform pem > server.pem && ipsec pki --pub --in server.pem | ipsec pki --issue --cacert ca.cert.pem --cakey ca.pem --dn "C=$C, O=$O, CN=$CNsan" —san=\"$CNsan\" --flag serverAuth --flag ikeIntermediate --outform pem > server.cert.pem && ipsec pki --gen --outform pem > client.pem && ipsec pki --pub --in client.pem | ipsec pki --issue --cacert ca.cert.pem --cakey ca.pem --dn "C=$C, O=$O, CN=$CACN" --outform pem >client.cert.pem && openssl pkcs12 -export -inkey client.pem -in client.cert.pem -name "$pkcsname" -certfile ca.cert.pem -caname "$CN" -out client.cert.p12
+ipsec pki --gen --outform pem > ca.pem
+ipsec pki --self --in ca.pem --dn "C=com, O=myvpn, CN=VPN CA" --ca --outform pem >ca.cert.pem
+ipsec pki --gen --outform pem > server.pem
+ipsec pki --pub --in server.pem | ipsec pki --issue --cacert ca.cert.pem --cakey ca.pem --dn "C=com, O=myvpn, CN=CNsan" --san=\"$CNsan\" --flag serverAuth --flag ikeIntermediate --outform pem > server.cert.pem
+ipsec pki --gen --outform pem > client.pem
+ipsec pki --pub --in client.pem | ipsec pki --issue --cacert ca.cert.pem --cakey ca.pem --dn "C=com, O=myvpn, CN=VPN Client" --outform pem > client.cert.pem
+openssl pkcs12 -export -inkey client.pem -in client.cert.pem -name "client" -certfile ca.cert.pem -caname "VPN CA"  -out client.cert.p12
 
-cp -r ca.cert.pem /usr/local/etc/ipsec.d/cacerts/ && cp -r server.cert.pem /usr/local/etc/ipsec.d/certs/ && cp -r server.pem /usr/local/etc/ipsec.d/private/ && cp -r client.cert.pem /usr/local/etc/ipsec.d/certs/ && cp -r client.pem  /usr/local/etc/ipsec.d/private/
+sudo cp -r ca.cert.pem /usr/local/etc/ipsec.d/cacerts/
+sudo cp -r server.cert.pem /usr/local/etc/ipsec.d/certs/
+sudo cp -r server.pem /usr/local/etc/ipsec.d/private/
+sudo cp -r client.cert.pem /usr/local/etc/ipsec.d/certs/
+sudo cp -r client.pem  /usr/local/etc/ipsec.d/private/
 echo "完成。"
 
 #开始配置Strongswan
 echo "配置Strongswan..."
+sudo chmod -R 777 /usr/local/etc/ipsec.conf
 echo "config setup" > /usr/local/etc/ipsec.conf
 echo "    uniqueids=never" >> /usr/local/etc/ipsec.conf
 echo "    " >> /usr/local/etc/ipsec.conf
@@ -156,8 +158,10 @@ echo "    rightsendcert=never" >> /usr/local/etc/ipsec.conf
 echo "    eap_identity=%any" >> /usr/local/etc/ipsec.conf
 echo "    auto=add" >> /usr/local/etc/ipsec.conf
 echo "完成。"
+sudo chmod -R 644 /usr/local/etc/ipsec.conf
 
 echo "配置Strongswan的配置文件..."
+sudo chmod -R 777 /usr/local/etc/strongswan.conf
 echo "charon {" > /usr/local/etc/strongswan.conf
 echo "    load_modular = yes" >> /usr/local/etc/strongswan.conf
 echo "    duplicheck.enable = no" >> /usr/local/etc/strongswan.conf
@@ -172,14 +176,18 @@ echo "    nbns2 = 8.8.4.4" >> /usr/local/etc/strongswan.conf
 echo "}" >> /usr/local/etc/strongswan.conf
 echo "include strongswan.d/*.conf" >> /usr/local/etc/strongswan.conf
 echo "完成。"
+sudo chmod -R 600 /usr/local/etc/strongswan.conf
 
 #开始配置PSK和XAUTH，以及用户名和密码
 echo "#开始配置PSK和XAUTH，以及用户名和密码"
+sudo rm /usr/local/etc/ipsec.secrets -f
+sudo touch /usr/local/etc/ipsec.secrets
+sudo chmod -R 777 /usr/local/etc/ipsec.secrets
 echo -n "输入您想配置的PSK(秘钥):"
 read mypsk
 echo -n "输入您想配置的XAUTH(授权方式):"
 read myxauth
-echo ": RSA server.pem" > /usr/local/etc/ipsec.secrets
+echo ": RSA server.pem" >> /usr/local/etc/ipsec.secrets
 echo ": PSK \"$mypsk\"" >> /usr/local/etc/ipsec.secrets
 echo ": XAUTH \"$myxauth\"" >> /usr/local/etc/ipsec.secrets
 
@@ -198,54 +206,64 @@ i=2000
 fi
 done
 echo "完成。"
+sudo chmod -R 644 /usr/local/etc/ipsec.secrets
 
 #开始配置防火墙
 echo "#开始配置防火墙"
-sed -i '/Controls IP packet forwarding/d' /etc/sysctl.conf
-sed -i '/net.ipv4.ip_forward/d' /etc/sysctl.conf
+sudo chmod -R 777 /etc/sysctl.conf
+sudo sed -i '/Controls IP packet forwarding/d' /etc/sysctl.conf
+sudo sed -i '/net.ipv4.ip_forward/d' /etc/sysctl.conf
 echo "# Controls IP packet forwarding" >> /etc/sysctl.conf
 echo "net.ipv4.ip_forward = 1" >> /etc/sysctl.conf
-sysctl -p
+sudo chmod -R 644 /etc/sysctl.conf
+sudo sysctl -p
 
-iptables -A FORWARD -m state --state RELATED,ESTABLISHED -j ACCEPT
-iptables -A FORWARD -s 10.31.0.0/24  -j ACCEPT
-iptables -A FORWARD -s 10.31.1.0/24  -j ACCEPT
-iptables -A FORWARD -s 10.31.2.0/24  -j ACCEPT
+sudo iptables -A FORWARD -m state --state RELATED,ESTABLISHED -j ACCEPT
+sudo iptables -A FORWARD -s 10.31.0.0/24  -j ACCEPT
+sudo iptables -A FORWARD -s 10.31.1.0/24  -j ACCEPT
+sudo iptables -A FORWARD -s 10.31.2.0/24  -j ACCEPT
 
 if [ "$selectedCore" == 'OpenVZ' ]; then
-iptables -A INPUT -i venet0 -p esp -j ACCEPT
-iptables -A INPUT -i venet0 -p udp --dport 500 -j ACCEPT
-iptables -A INPUT -i venet0 -p tcp --dport 500 -j ACCEPT
-iptables -A INPUT -i venet0 -p udp --dport 4500 -j ACCEPT
-iptables -A INPUT -i venet0 -p udp --dport 1701 -j ACCEPT
-iptables -A INPUT -i venet0 -p tcp --dport 1723 -j ACCEPT
-iptables -A FORWARD -j REJECT
-iptables -t nat -A POSTROUTING -s 10.31.0.0/24 -o venet0 -j MASQUERADE
-iptables -t nat -A POSTROUTING -s 10.31.1.0/24 -o venet0 -j MASQUERADE
-iptables -t nat -A POSTROUTING -s 10.31.2.0/24 -o venet0 -j MASQUERADE
+sudo iptables -A INPUT -i venet0 -p esp -j ACCEPT
+sudo iptables -A INPUT -i venet0 -p udp --dport 500 -j ACCEPT
+sudo iptables -A INPUT -i venet0 -p tcp --dport 500 -j ACCEPT
+sudo iptables -A INPUT -i venet0 -p udp --dport 4500 -j ACCEPT
+sudo iptables -A INPUT -i venet0 -p udp --dport 1701 -j ACCEPT
+sudo iptables -A INPUT -i venet0 -p tcp --dport 1723 -j ACCEPT
+sudo iptables -A FORWARD -j REJECT
+sudo iptables -t nat -A POSTROUTING -s 10.31.0.0/24 -o venet0 -j MASQUERADE
+sudo iptables -t nat -A POSTROUTING -s 10.31.1.0/24 -o venet0 -j MASQUERADE
+sudo iptables -t nat -A POSTROUTING -s 10.31.2.0/24 -o venet0 -j MASQUERADE
 else
-iptables -A INPUT -i eth0 -p esp -j ACCEPT
-iptables -A INPUT -i eth0 -p udp --dport 500 -j ACCEPT
-iptables -A INPUT -i eth0 -p tcp --dport 500 -j ACCEPT
-iptables -A INPUT -i eth0 -p udp --dport 4500 -j ACCEPT
-iptables -A INPUT -i eth0 -p udp --dport 1701 -j ACCEPT
-iptables -A INPUT -i eth0 -p tcp --dport 1723 -j ACCEPT
-iptables -A FORWARD -j REJECT
-iptables -t nat -A POSTROUTING -s 10.31.0.0/24 -o eth0 -j MASQUERADE
-iptables -t nat -A POSTROUTING -s 10.31.1.0/24 -o eth0 -j MASQUERADE
-iptables -t nat -A POSTROUTING -s 10.31.2.0/24 -o eth0 -j MASQUERADE
+sudo iptables -A INPUT -i eth0 -p esp -j ACCEPT
+sudo iptables -A INPUT -i eth0 -p udp --dport 500 -j ACCEPT
+sudo iptables -A INPUT -i eth0 -p tcp --dport 500 -j ACCEPT
+sudo iptables -A INPUT -i eth0 -p udp --dport 4500 -j ACCEPT
+sudo iptables -A INPUT -i eth0 -p udp --dport 1701 -j ACCEPT
+sudo iptables -A INPUT -i eth0 -p tcp --dport 1723 -j ACCEPT
+sudo iptables -A FORWARD -j REJECT
+sudo iptables -t nat -A POSTROUTING -s 10.31.0.0/24 -o eth0 -j MASQUERADE
+sudo iptables -t nat -A POSTROUTING -s 10.31.1.0/24 -o eth0 -j MASQUERADE
+sudo iptables -t nat -A POSTROUTING -s 10.31.2.0/24 -o eth0 -j MASQUERADE
 fi
 
-if [ "$selectedSys" == 'Ubuntu' ]; then
-iptables-save > /etc/iptables.rules
+if [ "$selectedSys" == 'Ubuntu' -o "$selectedSys" == 'Debian' ]; then
+sudo rm /etc/iptables.rules -f
+sudo touch /etc/iptables.rules
+sudo chmod -R 777 /etc/iptables.rules
+sudo rm /etc/network/if-up.d/iptables -f
+sudo touch /etc/network/if-up.d/iptables
+sudo chmod -R 777 /etc/network/ip-up.d/iptables
+iptables-save >> /etc/iptables.rules
 cat > /etc/network/if-up.d/iptables<<EOF
 #!/bin/sh
-iptables-restore < /etc/iptables.rules
+iptables-restore << /etc/iptables.rules
 EOF
 chmod +x /etc/network/if-up.d/iptables
 else
 service iptables save
 fi
+sudo chmod -R 644 /etc/iptables.rules
 echo "完成。"
 
 #在登陆目录生成开机手动启动文件
@@ -253,58 +271,64 @@ echo "#在登陆目录生成开机手动启动文件"
 cd ~
 echo "#!/bin/bash" > startvpn.sh
 echo "echo \"Starting Cisco Ipsec VPN ...\"" >> startvpn.sh
+if [ "$selectedSys" == 'Ubuntu' -o "$selectedSys" == 'Debian' ]; then
+echo "sudo ipsec restart" >> startvpn.sh
+else
 echo "ipsec restart" >> startvpn.sh
-echo "iptables -A FORWARD -m state --state RELATED,ESTABLISHED -j ACCEPT" >> startvpn.sh
-echo "iptables -A FORWARD -s 10.31.0.0/24  -j ACCEPT" >> startvpn.sh
-echo "iptables -A FORWARD -s 10.31.1.0/24  -j ACCEPT" >> startvpn.sh
-echo "iptables -A FORWARD -s 10.31.2.0/24  -j ACCEPT" >> startvpn.sh
+fi
+
+echo "sudo iptables -A FORWARD -m state --state RELATED,ESTABLISHED -j ACCEPT" >> startvpn.sh
+echo "sudo iptables -A FORWARD -s 10.31.0.0/24  -j ACCEPT" >> startvpn.sh
+echo "sudo iptables -A FORWARD -s 10.31.1.0/24  -j ACCEPT" >> startvpn.sh
+echo "sudo iptables -A FORWARD -s 10.31.2.0/24  -j ACCEPT" >> startvpn.sh
 
 if [ "$selectedCore" == 'OpenVZ' ]; then
-echo "iptables -A INPUT -i venet0 -p esp -j ACCEPT" >> startvpn.sh
-echo "iptables -A INPUT -i venet0 -p udp --dport 500 -j ACCEPT" >> startvpn.sh
-echo "iptables -A INPUT -i venet0 -p tcp --dport 500 -j ACCEPT" >> startvpn.sh
-echo "iptables -A INPUT -i venet0 -p udp --dport 4500 -j ACCEPT" >> startvpn.sh
-echo "iptables -A INPUT -i venet0 -p udp --dport 1701 -j ACCEPT" >> startvpn.sh
-echo "iptables -A INPUT -i venet0 -p tcp --dport 1723 -j ACCEPT" >> startvpn.sh
-echo "iptables -A FORWARD -j REJECT" >> startvpn.sh
-echo "iptables -t nat -A POSTROUTING -s 10.31.0.0/24 -o venet0 -j MASQUERADE" >> startvpn.sh
-echo "iptables -t nat -A POSTROUTING -s 10.31.1.0/24 -o venet0 -j MASQUERADE" >> startvpn.sh
-echo "iptables -t nat -A POSTROUTING -s 10.31.2.0/24 -o venet0 -j MASQUERADE" >> startvpn.sh
+echo "sudo iptables -A INPUT -i venet0 -p esp -j ACCEPT" >> startvpn.sh
+echo "sudo iptables -A INPUT -i venet0 -p udp --dport 500 -j ACCEPT" >> startvpn.sh
+echo "sudo iptables -A INPUT -i venet0 -p tcp --dport 500 -j ACCEPT" >> startvpn.sh
+echo "sudo iptables -A INPUT -i venet0 -p udp --dport 4500 -j ACCEPT" >> startvpn.sh
+echo "sudo iptables -A INPUT -i venet0 -p udp --dport 1701 -j ACCEPT" >> startvpn.sh
+echo "sudo iptables -A INPUT -i venet0 -p tcp --dport 1723 -j ACCEPT" >> startvpn.sh
+echo "sudo iptables -A FORWARD -j REJECT" >> startvpn.sh
+echo "sudo iptables -t nat -A POSTROUTING -s 10.31.0.0/24 -o venet0 -j MASQUERADE" >> startvpn.sh
+echo "sudo iptables -t nat -A POSTROUTING -s 10.31.1.0/24 -o venet0 -j MASQUERADE" >> startvpn.sh
+echo "sudo iptables -t nat -A POSTROUTING -s 10.31.2.0/24 -o venet0 -j MASQUERADE" >> startvpn.sh
 else
-echo "iptables -A INPUT -i eth0 -p esp -j ACCEPT" >> startvpn.sh
-echo "iptables -A INPUT -i eth0 -p udp --dport 500 -j ACCEPT" >> startvpn.sh
-echo "iptables -A INPUT -i eth0 -p tcp --dport 500 -j ACCEPT" >> startvpn.sh
-echo "iptables -A INPUT -i eth0 -p udp --dport 4500 -j ACCEPT" >> startvpn.sh
-echo "iptables -A INPUT -i eth0 -p udp --dport 1701 -j ACCEPT" >> startvpn.sh
-echo "iptables -A INPUT -i eth0 -p tcp --dport 1723 -j ACCEPT" >> startvpn.sh
-echo "iptables -A FORWARD -j REJECT" >> startvpn.sh
-echo "iptables -t nat -A POSTROUTING -s 10.31.0.0/24 -o eth0 -j MASQUERADE" >> startvpn.sh
-echo "iptables -t nat -A POSTROUTING -s 10.31.1.0/24 -o eth0 -j MASQUERADE" >> startvpn.sh
-echo "iptables -t nat -A POSTROUTING -s 10.31.2.0/24 -o eth0 -j MASQUERADE" >> startvpn.sh
+echo "sudo iptables -A INPUT -i eth0 -p esp -j ACCEPT" >> startvpn.sh
+echo "sudo iptables -A INPUT -i eth0 -p udp --dport 500 -j ACCEPT" >> startvpn.sh
+echo "sudo iptables -A INPUT -i eth0 -p tcp --dport 500 -j ACCEPT" >> startvpn.sh
+echo "sudo iptables -A INPUT -i eth0 -p udp --dport 4500 -j ACCEPT" >> startvpn.sh
+echo "sudo iptables -A INPUT -i eth0 -p udp --dport 1701 -j ACCEPT" >> startvpn.sh
+echo "sudo iptables -A INPUT -i eth0 -p tcp --dport 1723 -j ACCEPT" >> startvpn.sh
+echo "sudo iptables -A FORWARD -j REJECT" >> startvpn.sh
+echo "sudo iptables -t nat -A POSTROUTING -s 10.31.0.0/24 -o eth0 -j MASQUERADE" >> startvpn.sh
+echo "sudo iptables -t nat -A POSTROUTING -s 10.31.1.0/24 -o eth0 -j MASQUERADE" >> startvpn.sh
+echo "sudo iptables -t nat -A POSTROUTING -s 10.31.2.0/24 -o eth0 -j MASQUERADE" >> startvpn.sh
 fi
 
 echo "echo \"Cisco Ipsec VPN has been launched on your server now.\"" >> startvpn.sh
 
 chmod -R 775 startvpn.sh
-bash startvpn.sh
+./startvpn.sh
 clear
 
-echo "您的配置如下："
-echo "您的秘钥PSK $mypsk"
-echo "您的XAUTH $myxauth"
-echo "================================="
-echo " ｜ 用户名 ｜ 密 码 ｜ "
+echo "======================================================";
+echo "            恭喜您 已成功安装Casio IPSec VPN"
+echo "[提示] 经测试支持如下系统：CentOS/Ubuntu/Debian/Fedora"
+echo "          并支持x86/64位版本，以及全部常用版本"
+echo "                                   Written by Lokyshin"
+echo "                                               Ver 2.0"
+echo "------------------------------------------------------"
+echo "                    您的配置如下"
+echo "------------------------------------------------------"
+echo " ｜   PSK  ｜  XAUTH  ｜   用户名   ｜   密 码   ｜ "
 for ((i=1;i<n+1;i++))
 do
-echo " ｜ ${name[$i]} ｜ ${psw[$i]} ｜ "
+echo " ｜ $mypsk ｜ $myxauth｜ ${name[$i]} ｜ ${psw[$i]} ｜ "
 done
-echo "================================="
-
+echo "------------------------------------------------------"
+echo "如您使用CentOS/Fedora,建议您重启系统以便优化内存占用。"
 echo "每次重启服务器后，不要忘了手动运行bash startvpn.sh"
 echo "您的用户配置文件位置在/usr/local/etc/ipsec.secrets"
-echo "祝您使用愉快，谢谢！"
-echo "";
-echo "Casio IPSec VPN"
-echo "Ver 1.1"
-echo "Written by Lokyshin"
+echo "======================================================";
 echo ""
