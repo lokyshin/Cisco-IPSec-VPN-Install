@@ -4,9 +4,10 @@ It will be stable when you connect your iPhone/Anroid/PC/Mac to your CentOS/Ubun
 And the only thing you should do is typing several words based on the tips.
 So enjoy it if you have one VPS (CentOS/Ubuntu/Debian/Fedora) with XEN/KVM/OpenVZ.
 
-Tips: This code supports the following servers: Linode/DigitalOcean/Bandwagonhost and more.
+Tips: This code supports the following servers: Linode/DigitalOcean/Bandwagonhost/AWS EC2 and more.
 
-Pls remember, you must run this codes with your root user.
+Pls remember, you must run this codes with your root user. Please also open UDP port 500 and 4500 on VPS.
+
 
 If you want to one-key install Cisco IPSec VPN on your server, you could copy the following codes and run:
 
