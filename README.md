@@ -10,4 +10,4 @@ Pls remember, you must run this codes with your root user.
 
 If you want to one-key install Cisco IPSec VPN on your server, you could copy the following codes and run:
 
-wget --no-check-certificate http://lokyshin.com/codes/CIVInstall.sh && chmod +x CIVInstall.sh && bash CIVInstall.sh 2>&1 | tee civaws_install.log
+wget --no-check-certificate https://raw.githubusercontent.com/lokyshin/Cisco-IPSec-VPN-Install/master/CIVInstall.sh && chmod +x CIVInstall.sh && bash CIVInstall.sh 2>&1 | tee civaws_install.log
