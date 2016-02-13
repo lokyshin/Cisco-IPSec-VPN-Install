@@ -54,10 +54,10 @@ ConfirmAgain;
 
 echo "#开始编译安装Strongswan"
 if [ "$selectedSys" == 'Ubuntu' -o  "$selectedSys" == 'Debian' ]; then
-apt-get update
+apt-get update -y
 apt-get install libpam0g-dev libssl-dev make gcc
 else
-yum update
+yum update -y
 yum install pam-devel openssl-devel make gcc
 fi
 
